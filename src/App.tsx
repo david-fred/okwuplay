@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { words } from './data/words'
 import { tokenize } from './igbo/tiles'
-import { t, type Locale } from './i18n'
+import { t, isComplete, type Locale } from './i18n'
 
 // Extra letters so the player has to choose, not just rearrange.
 const DECOYS = ['a', 'e', 'i', 'o', 'u', 'n', 'm', 'r']
@@ -49,9 +49,11 @@ export default function App() {
         <button onClick={() => setLocale('en')} disabled={locale === 'en'}>
           English
         </button>{' '}
-        <button onClick={() => setLocale('ig')} disabled={locale === 'ig'}>
-          Igbo
-        </button>
+        {isComplete('ig') && (
+          <button onClick={() => setLocale('ig')} disabled={locale === 'ig'}>
+            Igbo
+          </button>
+        )}
       </div>
 
       <p>{prompt}</p>
