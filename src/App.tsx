@@ -1,56 +1,72 @@
-import { useState } from "react";
-import { words } from "./data/words";
-import { tokenize } from "./igbo/tiles";
+import { useState } from 'react'
+import { words } from './data/words'
+import { tokenize } from './igbo/tiles'
+import { t, type Locale } from './i18n'
 
 // Extra letters so the player has to choose, not just rearrange.
-const DECOYS = ["a", "e", "i", "o", "u", "n", "m", "r"];
+const DECOYS = ['a', 'e', 'i', 'o', 'u', 'n', 'm', 'r']
 
 function shuffle<T>(items: T[]): T[] {
-  const copy = [...items];
+  const copy = [...items]
   for (let i = copy.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [copy[i], copy[j]] = [copy[j], copy[i]];
+    const j = Math.floor(Math.random() * (i + 1))
+    const tmp = copy[i]
+    copy[i] = copy[j]
+    copy[j] = tmp
   }
-  return copy;
+  return copy
 }
 
 function newRound() {
-  const target = words[Math.floor(Math.random() * words.length)];
-  const needed = tokenize(target.igbo);
-  const decoys = shuffle(DECOYS).slice(0, 2);
-  return { target, rack: shuffle([...needed, ...decoys]) };
+  const target = words[Math.floor(Math.random() * words.length)]
+  const needed = tokenize(target.igbo)
+  const decoys = shuffle(DECOYS).slice(0, 2)
+  return { target, rack: shuffle([...needed, ...decoys]) }
 }
 
 export default function App() {
-  const [round, setRound] = useState(newRound);
-  const [picked, setPicked] = useState<number[]>([]); // indexes into round.rack
+  const [locale, setLocale] = useState<Locale>('en')
+  const [round, setRound] = useState(newRound)
+  const [picked, setPicked] = useState<number[]>([]) // indexes into round.rack
 
-  const built = picked.map((i) => round.rack[i]).join("");
-  const solved = built === round.target.igbo.normalize("NFC").toLowerCase();
+  const built = picked.map((i) => round.rack[i]).join('')
+  const solved = built === round.target.igbo.normalize('NFC').toLowerCase()
+
+  // The meaning goes inside the translated sentence, so word order can change per language.
+  const prompt = t(locale, 'prompt').replace('{meaning}', round.target.english)
 
   function startNewRound() {
-    setRound(newRound());
-    setPicked([]);
+    setRound(newRound())
+    setPicked([])
   }
 
   return (
-    <main style={{ maxWidth: 480, margin: "2rem auto", textAlign: "center" }}>
+    <main style={{ maxWidth: 480, margin: '2rem auto', textAlign: 'center' }}>
       <h1>OkwuPlay</h1>
-      <p>
-        Build the Igbo word for: <strong>{round.target.english}</strong>
-      </p>
 
-      <div style={{ fontSize: 32, minHeight: 48, letterSpacing: 4 }}>
-        {built || "_"}
+      <div>
+        {/* Language names stay in their own language. */}
+        <button onClick={() => setLocale('en')} disabled={locale === 'en'}>
+          English
+        </button>{' '}
+        <button onClick={() => setLocale('ig')} disabled={locale === 'ig'}>
+          Igbo
+        </button>
       </div>
 
-      <div style={{ display: "flex", flexWrap: "wrap", gap: 8, justifyContent: "center", margin: "1.5rem 0" }}>
+      <p>{prompt}</p>
+
+      <div style={{ fontSize: 32, minHeight: 48, letterSpacing: 4 }}>
+        {built || '_'}
+      </div>
+
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, justifyContent: 'center', margin: '1.5rem 0' }}>
         {round.rack.map((tile, i) => (
           <button
             key={i}
             disabled={picked.includes(i) || solved}
             onClick={() => setPicked((p) => [...p, i])}
-            style={{ fontSize: 24, padding: "8px 14px" }}
+            style={{ fontSize: 24, padding: '8px 14px' }}
           >
             {tile}
           </button>
@@ -58,11 +74,11 @@ export default function App() {
       </div>
 
       <button onClick={() => setPicked((p) => p.slice(0, -1))} disabled={picked.length === 0 || solved}>
-        Undo
-      </button>{" "}
-      <button onClick={startNewRound}>New word</button>
+        {t(locale, 'undo')}
+      </button>{' '}
+      <button onClick={startNewRound}>{t(locale, 'newWord')}</button>
 
-      {solved && <p><strong>Correct!</strong></p>}
+      {solved && <p><strong>{t(locale, 'correct')}</strong></p>}
     </main>
-  );
+  )
 }
