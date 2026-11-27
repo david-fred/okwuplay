@@ -28,12 +28,24 @@ export default function App() {
   const [locale, setLocale] = useState<Locale>('en')
   const [round, setRound] = useState(newRound)
   const [picked, setPicked] = useState<number[]>([]) // indexes into round.rack
+  const [score, setScore] = useState(0)
 
+  const targetText = round.target.igbo.normalize('NFC').toLowerCase()
   const built = picked.map((i) => round.rack[i]).join('')
-  const solved = built === round.target.igbo.normalize('NFC').toLowerCase()
+  const solved = built === targetText
 
-  // The meaning goes inside the translated sentence, so word order can change per language.
   const prompt = t(locale, 'prompt').replace('{meaning}', round.target.english)
+  const scoreLine = t(locale, 'score').replace('{count}', String(score))
+
+  // Count the score in the click handler, so a word can only score once.
+  function pickTile(i: number) {
+    const nextPicked = [...picked, i]
+    const nextBuilt = nextPicked.map((j) => round.rack[j]).join('')
+    setPicked(nextPicked)
+    if (nextBuilt === targetText) {
+      setScore((s) => s + 1)
+    }
+  }
 
   function startNewRound() {
     setRound(newRound())
@@ -45,7 +57,6 @@ export default function App() {
       <h1>OkwuPlay</h1>
 
       <div>
-        {/* Language names stay in their own language. */}
         <button onClick={() => setLocale('en')} disabled={locale === 'en'}>
           English
         </button>{' '}
@@ -56,6 +67,7 @@ export default function App() {
         )}
       </div>
 
+      <p>{scoreLine}</p>
       <p>{prompt}</p>
 
       <div style={{ fontSize: 32, minHeight: 48, letterSpacing: 4 }}>
@@ -67,7 +79,7 @@ export default function App() {
           <button
             key={i}
             disabled={picked.includes(i) || solved}
-            onClick={() => setPicked((p) => [...p, i])}
+            onClick={() => pickTile(i)}
             style={{ fontSize: 24, padding: '8px 14px' }}
           >
             {tile}

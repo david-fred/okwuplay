@@ -7,4 +7,5 @@ export default {
   correct: 'Ọ dị mma!',
   undo: 'Kwụghachi',
   newWord: 'Okwu ọhụrụ',
+  score: 'Ọnụ ọgụgụ: {count}', // draft, needs speaker check
 } satisfies Record<keyof typeof en, string>
